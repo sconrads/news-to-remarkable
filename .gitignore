@@ -1,0 +1,26 @@
+# Credentials — aldri commit disse
+.env
+
+# Genererte filer
+output/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Playwright-nettlesere (store binærfiler)
+browsers/
+
+# rmapi-binær
+rmapi
+
+# Python virtualenv
+venv/
+
+# Cookie-cache
+.news-remarkable-cookies.json
+*.cookies.json
+
+# Diverse
+.DS_Store
+*.log

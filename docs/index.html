@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>news-to-remarkable — Your morning paper, delivered to your reMarkable</title>
+  <meta name="description" content="Automatically fetch full-text articles from Norwegian newspapers, generate a beautiful PDF, and deliver it to your reMarkable tablet every morning.">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black: #0d0d0d;
+      --ink: #1a1a1a;
+      --mid: #555;
+      --light: #888;
+      --rule: #ddd;
+      --bg: #fafaf8;
+      --white: #fff;
+      --accent: #1a1a1a;
+      --serif: "Georgia", "Times New Roman", serif;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.6;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--white);
+      border-bottom: 1px solid var(--rule);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 52px;
+    }
+    .nav-brand {
+      font-family: var(--serif);
+      font-size: 1.05rem;
+      font-weight: normal;
+      color: var(--black);
+      text-decoration: none;
+      letter-spacing: 0.02em;
+    }
+    .nav-links {
+      display: flex;
+      gap: 1.8rem;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: 0.85rem;
+      color: var(--mid);
+      text-decoration: none;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    .nav-links a:hover { color: var(--black); }
+
+    /* ── HERO ── */
+    .hero {
+      background: var(--black);
+      color: var(--white);
+      text-align: center;
+      padding: 6rem 2rem 5rem;
+      border-bottom: 4px solid var(--black);
+    }
+    .hero-eyebrow {
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #aaa;
+      margin-bottom: 1.2rem;
+    }
+    .hero h1 {
+      font-family: var(--serif);
+      font-size: clamp(2.2rem, 6vw, 4rem);
+      font-weight: normal;
+      line-height: 1.15;
+      margin-bottom: 1.4rem;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .hero-sub {
+      font-size: 1.1rem;
+      color: #bbb;
+      max-width: 540px;
+      margin: 0 auto 2.4rem;
+      line-height: 1.7;
+    }
+    .hero-cta {
+      display: inline-block;
+      background: var(--white);
+      color: var(--black);
+      padding: 0.75rem 2rem;
+      border-radius: 3px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      transition: opacity 0.15s;
+    }
+    .hero-cta:hover { opacity: 0.85; }
+
+    /* ── MOCKUP ── */
+    .mockup-section {
+      background: var(--white);
+      border-bottom: 1px solid var(--rule);
+      padding: 4rem 2rem;
+      text-align: center;
+    }
+    .mockup {
+      display: inline-block;
+      background: var(--white);
+      border: 2px solid #222;
+      border-radius: 8px;
+      padding: 2rem;
+      max-width: 520px;
+      width: 100%;
+      text-align: left;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+      font-family: var(--serif);
+    }
+    .mockup-masthead {
+      text-align: center;
+      border-bottom: 3px solid #000;
+      padding-bottom: 0.6rem;
+      margin-bottom: 1rem;
+    }
+    .mockup-masthead h2 {
+      font-size: 1.5rem;
+      font-weight: bold;
+      letter-spacing: 0.03em;
+    }
+    .mockup-masthead .mockup-date {
+      font-size: 0.75rem;
+      color: #555;
+      margin-top: 0.1rem;
+    }
+    .mockup-masthead .mockup-quote {
+      font-size: 0.7rem;
+      font-style: italic;
+      color: #444;
+      margin-top: 0.5rem;
+      padding-top: 0.4rem;
+      border-top: 1px solid #ccc;
+    }
+    .mockup-cols {
+      display: flex;
+      gap: 1.2rem;
+    }
+    .mockup-toc { flex: 1; }
+    .mockup-breaking { flex: 0 0 42%; border-left: 1px solid #ccc; padding-left: 0.8rem; }
+    .mockup-section-label {
+      font-size: 0.6rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      border-bottom: 1px solid #000;
+      padding-bottom: 0.2rem;
+      margin-bottom: 0.4rem;
+    }
+    .mockup-cat { margin-bottom: 0.5rem; }
+    .mockup-cat-name { font-size: 0.65rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.06em; }
+    .mockup-art { font-size: 0.6rem; color: #333; padding-left: 0.4rem; margin-top: 0.15rem; line-height: 1.3; }
+    .mockup-art a { color: #333; text-decoration: underline; text-underline-offset: 2px; }
+    .mockup-headline { font-size: 0.6rem; font-weight: bold; line-height: 1.3; margin-bottom: 0.3rem; padding-bottom: 0.3rem; border-bottom: 1px solid #eee; }
+    .mockup-headline:last-child { border-bottom: none; }
+    .mockup-hl-meta { font-size: 0.5rem; color: #888; font-style: italic; }
+
+    /* ── FEATURES ── */
+    .features {
+      padding: 5rem 2rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .section-title {
+      font-family: var(--serif);
+      font-size: 1.9rem;
+      font-weight: normal;
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+    .section-sub {
+      text-align: center;
+      color: var(--mid);
+      margin-bottom: 3.5rem;
+      font-size: 0.95rem;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 2rem;
+    }
+    .feature-card {
+      background: var(--white);
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      padding: 1.8rem;
+    }
+    .feature-icon {
+      font-size: 1.6rem;
+      margin-bottom: 0.8rem;
+    }
+    .feature-card h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .feature-card p {
+      font-size: 0.9rem;
+      color: var(--mid);
+      line-height: 1.6;
+    }
+
+    /* ── REQUIREMENTS ── */
+    .requirements {
+      background: var(--white);
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+      padding: 5rem 2rem;
+    }
+    .requirements-inner {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .req-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2.5rem;
+    }
+    .req-card {
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      padding: 1.5rem;
+      background: var(--bg);
+    }
+    .req-card .req-icon { font-size: 2rem; margin-bottom: 0.7rem; }
+    .req-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.4rem; }
+    .req-card p { font-size: 0.85rem; color: var(--mid); line-height: 1.5; }
+    .req-card ul { font-size: 0.85rem; color: var(--mid); line-height: 1.6; padding-left: 1rem; margin-top: 0.3rem; }
+
+    /* ── GUIDE ── */
+    .guide {
+      padding: 5rem 2rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .steps { margin-top: 2.5rem; }
+    .step {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+      padding-bottom: 2.5rem;
+      border-bottom: 1px solid var(--rule);
+    }
+    .step:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .step-num {
+      flex-shrink: 0;
+      width: 2.2rem;
+      height: 2.2rem;
+      background: var(--black);
+      color: var(--white);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-top: 0.1rem;
+    }
+    .step-body h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.4rem; }
+    .step-body p { font-size: 0.9rem; color: var(--mid); margin-bottom: 0.7rem; line-height: 1.6; }
+    .step-body p:last-child { margin-bottom: 0; }
+
+    pre {
+      background: #0d0d0d;
+      color: #e8e8e8;
+      border-radius: 5px;
+      padding: 1rem 1.2rem;
+      font-size: 0.82rem;
+      overflow-x: auto;
+      margin: 0.8rem 0 0;
+      font-family: var(--mono);
+      line-height: 1.6;
+    }
+    code {
+      font-family: var(--mono);
+      font-size: 0.85em;
+      background: #ebebeb;
+      padding: 0.15em 0.4em;
+      border-radius: 3px;
+    }
+    pre code { background: none; padding: 0; font-size: inherit; }
+
+    .note {
+      background: #f5f5f0;
+      border-left: 3px solid #bbb;
+      padding: 0.8rem 1rem;
+      font-size: 0.85rem;
+      color: var(--mid);
+      border-radius: 0 4px 4px 0;
+      margin-top: 0.8rem;
+    }
+
+    /* ── CONFIG ── */
+    .config-section {
+      background: var(--white);
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+      padding: 5rem 2rem;
+    }
+    .config-inner { max-width: 800px; margin: 0 auto; }
+    .config-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 2rem;
+      font-size: 0.88rem;
+    }
+    .config-table th {
+      text-align: left;
+      padding: 0.6rem 1rem;
+      background: var(--bg);
+      border-bottom: 2px solid var(--rule);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--mid);
+    }
+    .config-table td {
+      padding: 0.7rem 1rem;
+      border-bottom: 1px solid var(--rule);
+      vertical-align: top;
+    }
+    .config-table td:first-child code { font-size: 0.82rem; }
+    .config-table tr:last-child td { border-bottom: none; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--black);
+      color: #888;
+      text-align: center;
+      padding: 2.5rem;
+      font-size: 0.82rem;
+    }
+    footer a { color: #bbb; text-decoration: none; }
+    footer a:hover { color: var(--white); }
+
+    @media (max-width: 600px) {
+      .nav-links { display: none; }
+      .mockup-cols { flex-direction: column; }
+      .mockup-breaking { border-left: none; border-top: 1px solid #ccc; padding-left: 0; padding-top: 0.8rem; }
+      .step { flex-direction: column; gap: 0.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-brand" href="#">news-to-remarkable</a>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#requirements">Requirements</a></li>
+    <li><a href="#guide">Setup guide</a></li>
+    <li><a href="#configuration">Configuration</a></li>
+    <li><a href="https://github.com/sconrads/news-to-remarkable" target="_blank">GitHub</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <p class="hero-eyebrow">Open source &middot; Python &middot; Raspberry Pi</p>
+  <h1>Your morning paper,<br>delivered to your reMarkable</h1>
+  <p class="hero-sub">Automatically fetch full-text articles from Norwegian newspapers, filter for quality, and wake up to a fresh, beautifully typeset PDF waiting on your tablet.</p>
+  <a class="hero-cta" href="#guide">Get started &darr;</a>
+</section>
+
+<!-- MOCKUP -->
+<section class="mockup-section">
+  <div class="mockup">
+    <div class="mockup-masthead">
+      <h2>Stians nyhetsmorgen</h2>
+      <div class="mockup-date">26. mars 2026</div>
+      <div class="mockup-quote">&laquo;Fremtiden tilhører dem som tror på sine drømmers skjønnhet.&raquo;<br><em style="font-size:0.6rem;color:#777">— Eleanor Roosevelt</em></div>
+    </div>
+    <div class="mockup-cols">
+      <div class="mockup-toc">
+        <div class="mockup-section-label">Innhold</div>
+        <div class="mockup-cat">
+          <div class="mockup-cat-name">Politikk (3)</div>
+          <div class="mockup-art"><a href="#">SP vil støtte Høyre-forslag — AP mener det er feil vei</a></div>
+          <div class="mockup-art"><a href="#">Lars Løkke Rasmussen er kanskje en av få som forstår Europa</a></div>
+          <div class="mockup-art"><a href="#">Mener Rødt maler fanden på veggen</a></div>
+        </div>
+        <div class="mockup-cat">
+          <div class="mockup-cat-name">Økonomi (3)</div>
+          <div class="mockup-art"><a href="#">Frontfagsmodellen er utdatert</a></div>
+          <div class="mockup-art"><a href="#">Norges Bank holder renten uendret</a></div>
+        </div>
+        <div class="mockup-cat">
+          <div class="mockup-cat-name">Kultur (3)</div>
+          <div class="mockup-art"><a href="#">Den virkelige Harry Hole</a></div>
+        </div>
+      </div>
+      <div class="mockup-breaking">
+        <div class="mockup-section-label">Siste nyheter</div>
+        <div class="mockup-headline">Statsbudsjettet: ny støtte til kommunene<div class="mockup-hl-meta">Aftenposten &middot; 05:47</div></div>
+        <div class="mockup-headline">Renter uendret på 4,5 prosent<div class="mockup-hl-meta">Aftenposten &middot; 06:02</div></div>
+        <div class="mockup-headline">Sterke reaksjoner på Iran-utspill<div class="mockup-hl-meta">Aftenposten &middot; 06:14</div></div>
+        <div class="mockup-headline">Dramatisk i Eliteserien<div class="mockup-hl-meta">Aftenposten &middot; 07:00</div></div>
+      </div>
+    </div>
+  </div>
+  <p style="margin-top:1.2rem;font-size:0.8rem;color:#999;">Preview of the front page as it appears on your reMarkable</p>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <h2 class="section-title">What it does</h2>
+  <p class="section-sub">A fully automated pipeline from RSS to reMarkable, running every morning before you wake up.</p>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🔐</div>
+      <h3>Full-text behind paywalls</h3>
+      <p>Logs in to Schibsted (Aftenposten, VG, E24) and Morgenbladet with your credentials. Fetches complete article text, not just RSS summaries.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">✂️</div>
+      <h3>Quality filtering</h3>
+      <p>Short news flashes are discarded. Only articles with substantial text (configurable word count) are included. The longest, most in-depth pieces are prioritised.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📰</div>
+      <h3>Newspaper-style PDF</h3>
+      <p>A clean, serif-typeset A4 PDF with a front page, table of contents with clickable links, daily quote, and breaking news headlines.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📲</div>
+      <h3>Delivered to reMarkable</h3>
+      <p>Uploaded automatically to the <code>/Nyheter</code> folder on your reMarkable Cloud. Files older than a configurable number of days are cleaned up.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⏰</div>
+      <h3>Runs while you sleep</h3>
+      <p>A cron job on your Raspberry Pi (or any Linux machine) triggers at 06:00 every morning. No intervention needed.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚙️</div>
+      <h3>Fully configurable</h3>
+      <p>Choose which newspapers are active, how many articles per category, minimum article length, your name, and retention period — all in one <code>config.py</code>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- REQUIREMENTS -->
+<section class="requirements" id="requirements">
+  <div class="requirements-inner">
+    <h2 class="section-title">What you need</h2>
+    <p class="section-sub">Four things are required before you start.</p>
+    <div class="req-grid">
+      <div class="req-card">
+        <div class="req-icon">📖</div>
+        <h3>reMarkable tablet</h3>
+        <p>Any reMarkable (1 or 2) connected to reMarkable Cloud. The PDF is delivered wirelessly — no USB cable needed.</p>
+      </div>
+      <div class="req-card">
+        <div class="req-icon">📰</div>
+        <h3>Newspaper subscription(s)</h3>
+        <ul>
+          <li>Aftenposten (Schibsted)</li>
+          <li>Morgenbladet</li>
+          <li>VG (Schibsted) — optional</li>
+          <li>E24 (Schibsted) — optional</li>
+        </ul>
+      </div>
+      <div class="req-card">
+        <div class="req-icon">🖥️</div>
+        <h3>A machine to run it on</h3>
+        <p>A Raspberry Pi (ARM64, Debian 11+) works great. Any Linux machine with Python 3.9+ and a stable internet connection will do.</p>
+      </div>
+      <div class="req-card">
+        <div class="req-icon">🐍</div>
+        <h3>Python 3.9+</h3>
+        <p>Standard Python installation. All dependencies are installed via <code>pip</code> from <code>requirements.txt</code>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GUIDE -->
+<section class="guide" id="guide">
+  <h2 class="section-title">Setup guide</h2>
+  <p class="section-sub">From zero to a fresh newspaper on your reMarkable every morning.</p>
+
+  <div class="steps">
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h3>Clone the repository</h3>
+        <p>Clone to your machine (Raspberry Pi or Linux desktop):</p>
+        <pre><code>git clone https://github.com/sconrads/news-to-remarkable.git
+cd news-to-remarkable</code></pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h3>Create a virtual environment and install dependencies</h3>
+        <pre><code>python3 -m venv venv
+venv/bin/pip install --upgrade pip
+venv/bin/pip install -r requirements.txt</code></pre>
+        <p>If WeasyPrint fails, install the required system libraries first:</p>
+        <pre><code>sudo apt install -y libpango-1.0-0 libpangoft2-1.0-0</code></pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h3>Install the Playwright browser</h3>
+        <p>A bundled Chromium instance is used for authenticated article fetching. Install it inside the project folder to avoid conflicts:</p>
+        <pre><code>PLAYWRIGHT_BROWSERS_PATH=~/news-to-remarkable/browsers \
+  venv/bin/playwright install chromium</code></pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <h3>Configure your credentials</h3>
+        <p>Copy the example file and fill in your subscription credentials:</p>
+        <pre><code>cp .env.example .env
+nano .env</code></pre>
+        <pre><code>SCHIBSTED_EMAIL=your@email.no
+SCHIBSTED_PASSWORD=yourpassword
+MORGENBLADET_EMAIL=your@email.no
+MORGENBLADET_PASSWORD=yourpassword</code></pre>
+        <div class="note">Your credentials are stored only in <code>.env</code> on your own machine — never committed to git or sent anywhere.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <h3>Set your name in config.py</h3>
+        <p>Open <code>config.py</code> and change <code>OWNER_NAME</code> to your name. The front page will read <em>"[Your name]s nyhetsmorgen"</em>.</p>
+        <pre><code>OWNER_NAME = "Stian"</code></pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">6</div>
+      <div class="step-body">
+        <h3>Download rmapi and register with reMarkable Cloud</h3>
+        <p>Download the <code>rmapi</code> binary for your architecture from <a href="https://github.com/ddvk/rmapi/releases" target="_blank">github.com/ddvk/rmapi/releases</a> and place it in the project folder:</p>
+        <pre><code># ARM64 (Raspberry Pi):
+wget https://github.com/ddvk/rmapi/releases/download/v0.0.32/rmapi-arm64.tar.gz
+tar -xzf rmapi-arm64.tar.gz && chmod +x rmapi && rm rmapi-arm64.tar.gz
+
+# x86-64 (regular Linux):
+wget https://github.com/ddvk/rmapi/releases/download/v0.0.32/rmapi-amd64.tar.gz
+tar -xzf rmapi-amd64.tar.gz && chmod +x rmapi && rm rmapi-amd64.tar.gz</code></pre>
+        <p>Then register once with reMarkable Cloud. Get a one-time code at <a href="https://my.remarkable.com/connect/desktop" target="_blank">my.remarkable.com/connect/desktop</a>, then run:</p>
+        <pre><code>venv/bin/python register.py</code></pre>
+        <p>Verify the connection:</p>
+        <pre><code>./rmapi ls /</code></pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">7</div>
+      <div class="step-body">
+        <h3>Run manually to verify</h3>
+        <pre><code>PLAYWRIGHT_BROWSERS_PATH=~/news-to-remarkable/browsers \
+  venv/bin/python main.py</code></pre>
+        <p>If everything is configured correctly, you should see the pipeline run and end with:</p>
+        <pre><code>=== Ferdig! PDF sendt til reMarkable. ===</code></pre>
+        <p>Check your reMarkable — the PDF should appear in the <code>/Nyheter</code> folder within seconds.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">8</div>
+      <div class="step-body">
+        <h3>Schedule the daily cron job</h3>
+        <p>Open crontab and add the line below to run every morning at 06:00:</p>
+        <pre><code>crontab -e</code></pre>
+        <pre><code>0 6 * * * cd ~/news-to-remarkable && \
+  PLAYWRIGHT_BROWSERS_PATH=~/news-to-remarkable/browsers \
+  ~/news-to-remarkable/venv/bin/python main.py \
+  >> ~/news-to-remarkable/cron.log 2>&1</code></pre>
+        <p>Logs are written to <code>~/news-to-remarkable/cron.log</code>.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- CONFIGURATION -->
+<section class="config-section" id="configuration">
+  <div class="config-inner">
+    <h2 class="section-title">Configuration reference</h2>
+    <p class="section-sub">All settings live in <code>config.py</code>. No code changes needed.</p>
+    <table class="config-table">
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Default</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>OWNER_NAME</code></td>
+          <td><code>"Stian"</code></td>
+          <td>Your name. Appears in the front page title as "<em>Name</em>s nyhetsmorgen".</td>
+        </tr>
+        <tr>
+          <td><code>ENABLED_SOURCES</code></td>
+          <td><code>["aftenposten", "morgenbladet"]</code></td>
+          <td>Which newspapers to fetch. Available: <code>aftenposten</code>, <code>morgenbladet</code>, <code>vg</code>, <code>e24</code>.</td>
+        </tr>
+        <tr>
+          <td><code>MAX_ARTICLES_PER_CATEGORY</code></td>
+          <td><code>3</code></td>
+          <td>Maximum number of articles shown per category in the PDF.</td>
+        </tr>
+        <tr>
+          <td><code>MIN_ARTICLE_WORDS</code></td>
+          <td><code>300</code></td>
+          <td>Articles shorter than this word count are discarded as "news flashes".</td>
+        </tr>
+        <tr>
+          <td><code>MAX_BREAKING_HEADLINES</code></td>
+          <td><code>10</code></td>
+          <td>Number of latest headlines shown on the front page right column.</td>
+        </tr>
+        <tr>
+          <td><code>PDF_RETENTION_DAYS</code></td>
+          <td><code>5</code></td>
+          <td>PDFs older than this many days are automatically deleted from reMarkable.</td>
+        </tr>
+        <tr>
+          <td><code>REMARKABLE_FOLDER</code></td>
+          <td><code>"/Nyheter"</code></td>
+          <td>The folder on reMarkable Cloud where PDFs are uploaded.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>
+    <a href="https://github.com/sconrads/news-to-remarkable" target="_blank">View on GitHub</a>
+    &nbsp;&middot;&nbsp;
+    MIT License
+    &nbsp;&middot;&nbsp;
+    Built with Python, WeasyPrint &amp; Playwright
+  </p>
+</footer>
+
+</body>
+</html>
