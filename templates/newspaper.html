@@ -192,7 +192,7 @@
   .calendar-section {
     margin-top: 14pt;
     padding-top: 10pt;
-    border-top: 1px solid #ccc;
+    border-top: 2px solid #000;
   }
   .calendar-section h2 {
     font-size: 13pt;
@@ -202,10 +202,18 @@
     border-bottom: 1px solid #000;
     padding-bottom: 3pt;
   }
+  .calendar-events-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8pt 20pt;
+  }
   .calendar-event {
-    margin-bottom: 6pt;
-    padding-bottom: 5pt;
-    border-bottom: 1px solid #eee;
+    flex: 0 0 auto;
+    min-width: 120pt;
+    padding-right: 16pt;
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
   }
   .calendar-event:last-child {
     border-bottom: none;
@@ -270,21 +278,6 @@
       {% endfor %}
     </div>
 
-    {% if calendar_events %}
-    <div class="calendar-section">
-      <h2>Dette skjer i dag</h2>
-      {% for event in calendar_events %}
-      <div class="calendar-event">
-        <div class="calendar-event-time">{{ event.time_label() }}</div>
-        <div class="calendar-event-title">{{ event.title }}</div>
-        {% if event.location %}
-        <div class="calendar-event-location">{{ event.location }}</div>
-        {% endif %}
-      </div>
-      {% endfor %}
-    </div>
-    {% endif %}
-
   </div>
 
   <!-- Siste nyheter (kun overskrifter) -->
@@ -303,6 +296,23 @@
   {% endif %}
 
 </div>
+
+{% if calendar_events %}
+<div class="calendar-section">
+  <h2>Dette skjer i dag</h2>
+  <div class="calendar-events-row">
+    {% for event in calendar_events %}
+    <div class="calendar-event">
+      <div class="calendar-event-time">{{ event.time_label() }}</div>
+      <div class="calendar-event-title">{{ event.title }}</div>
+      {% if event.location %}
+      <div class="calendar-event-location">{{ event.location }}</div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
 
 <!-- Kategorier -->
 {% set art_idx = namespace(n=0) %}
