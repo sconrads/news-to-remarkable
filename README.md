@@ -123,3 +123,7 @@ Flyt via `auth.morgenbladet.no`:
 ### reMarkable-opplasting
 
 Bruker [`ddvk/rmapi`](https://github.com/ddvk/rmapi) v0.0.32. Enhet registreres mot reMarkable Cloud via [my.remarkable.com/device/remarkable](https://my.remarkable.com/device/remarkable) (klikk **Pair device**). Binæren er ikke inkludert i dette repoet — lastes ned automatisk av GitHub Actions.
+
+---
+
+If this saves you time every morning, consider [sponsoring via GitHub Sponsors](https://github.com/sponsors/sconrads).
