@@ -20,6 +20,10 @@ MAX_ARTICLES_PER_SOURCE = 8
 # Minimum antall ord i artikkeltekst for å regnes som "god artikkel"
 MIN_ARTICLE_WORDS = 300
 
+# Maks alder på artikler (i dager). Artikler eldre enn dette filtreres bort fra RSS.
+# Sett til None for å deaktivere aldersfiltrering.
+MAX_ARTICLE_AGE_DAYS = 2
+
 # Maks antall "siste nyheter"-overskrifter på forsiden
 MAX_BREAKING_HEADLINES = 10
 

@@ -2,13 +2,13 @@
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 from urllib.parse import urlparse
 
 import feedparser
 
-from config import RSS_FEEDS, MAX_ARTICLES_PER_SOURCE, ENABLED_SOURCES
+from config import RSS_FEEDS, MAX_ARTICLES_PER_SOURCE, ENABLED_SOURCES, MAX_ARTICLE_AGE_DAYS
 
 logger = logging.getLogger(__name__)
 
@@ -75,6 +75,10 @@ def fetch_feed(source: str) -> list[RSSArticle]:
     feed = feedparser.parse(url)
     articles = []
 
+    cutoff = None
+    if MAX_ARTICLE_AGE_DAYS is not None:
+        cutoff = datetime.now() - timedelta(days=MAX_ARTICLE_AGE_DAYS)
+
     for entry in feed.entries:
         title = getattr(entry, "title", "").strip()
         link = getattr(entry, "link", "").strip()
@@ -94,11 +98,22 @@ def fetch_feed(source: str) -> list[RSSArticle]:
         else:
             raw_cat = ""
 
+        published = _parse_published(entry)
+
+        if cutoff is not None:
+            if published is None:
+                logger.debug(f"  [{source}] Ingen publiseringsdato, beholder: {title[:60]}")
+            elif published < cutoff:
+                logger.info(
+                    f"  [{source}] Forkaster gammel artikkel ({published.date()}): {title[:60]}"
+                )
+                continue
+
         articles.append(RSSArticle(
             title=title,
             url=link,
             summary=summary,
-            published=_parse_published(entry),
+            published=published,
             source=source,
             raw_category=raw_cat,
         ))
