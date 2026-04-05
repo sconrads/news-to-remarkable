@@ -42,7 +42,7 @@ jobs:
 
       - name: Last ned rmapi
         run: |
-          curl -sSL https://github.com/ddvk/rmapi/releases/download/v0.0.32/rmapi-amd64.tar.gz \
+          curl -sSL https://github.com/ddvk/rmapi/releases/download/v0.0.32/rmapi-linux-amd64.tar.gz \
             | tar -xz -C .
           chmod +x rmapi
 
