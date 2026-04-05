@@ -71,6 +71,8 @@ jobs:
           MORGENBLADET_EMAIL: ${{ secrets.MORGENBLADET_EMAIL }}
           MORGENBLADET_PASSWORD: ${{ secrets.MORGENBLADET_PASSWORD }}
           CALENDAR_ICS_URLS: ${{ secrets.CALENDAR_ICS_URLS }}
+          ENABLED_SOURCES: ${{ secrets.ENABLED_SOURCES }}
+          OWNER_NAME: ${{ secrets.OWNER_NAME }}
           COOKIE_FILE: /tmp/schibsted-cookies.json
           MORGENBLADET_COOKIE_FILE: /tmp/morgenbladet-cookies.json
           PLAYWRIGHT_BROWSERS_PATH: /home/runner/.cache/ms-playwright

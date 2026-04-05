@@ -32,13 +32,21 @@ MAX_ARTICLE_AGE_DAYS = 2
 # Maks antall "siste nyheter"-overskrifter på forsiden
 MAX_BREAKING_HEADLINES = 10
 
-# Hvilke aviser som er aktive. Kommenter ut eller fjern for å deaktivere.
-ENABLED_SOURCES = [
-#    "vg",
-    "aftenposten",
-#    "e24",
-    "morgenbladet",
-]
+# Hvilke aviser som er aktive.
+# Kan overstyres med env-variabelen ENABLED_SOURCES som kommaseparert liste,
+# f.eks: ENABLED_SOURCES=aftenposten,morgenbladet
+# Gyldige verdier: vg, aftenposten, e24, morgenbladet
+_enabled_sources_env = os.getenv("ENABLED_SOURCES", "")
+ENABLED_SOURCES = (
+    [s.strip() for s in _enabled_sources_env.split(",") if s.strip()]
+    if _enabled_sources_env
+    else [
+        # "vg",
+        "aftenposten",
+        # "e24",
+        "morgenbladet",
+    ]
+)
 
 RSS_FEEDS = {
     "vg": "https://www.vg.no/rss/feed/",

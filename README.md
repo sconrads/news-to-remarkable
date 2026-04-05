@@ -37,6 +37,7 @@ Se [SETUP.md](SETUP.md) for fullstendig installasjonsveiledning.
 | `RMAPI_DEVICE_TOKEN` | Device token fra `register.py` |
 | `MORGENBLADET_EMAIL` | Din Morgenbladet-e-post (valgfritt) |
 | `MORGENBLADET_PASSWORD` | Ditt Morgenbladet-passord (valgfritt) |
+| `ENABLED_SOURCES` | Kommaseparert liste over aviser, f.eks. `aftenposten,morgenbladet` (valgfritt, standard: `aftenposten,morgenbladet`) |
 | `CALENDAR_ICS_URLS` | Kommaseparerte iCal-URLer (valgfritt) |
 | `OWNER_NAME` | Ditt fornavn på forsiden (valgfritt) |
 
