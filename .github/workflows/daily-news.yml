@@ -1,19 +1,10 @@
 name: Daily News to reMarkable
 
-# Workflowen er deaktivert i dette public repoet.
-# For å bruke den: fork repoet (privat), og fjern kommentaren fra linjene under.
 on:
+  schedule:
+    # Kjører kl. 06:00 UTC hver morgen (08:00 norsk sommertid, 07:00 vintertid)
+    - cron: "0 6 * * *"
   workflow_dispatch:
-    inputs:
-      enabled:
-        description: "Sett til 'true' for å kjøre"
-        required: true
-        default: "false"
-# on:
-#   schedule:
-#     # Kjører kl. 06:00 UTC hver morgen (08:00 norsk sommertid, 07:00 vintertid)
-#     - cron: "0 6 * * *"
-#   workflow_dispatch:
 
 jobs:
   generate-and-upload:
