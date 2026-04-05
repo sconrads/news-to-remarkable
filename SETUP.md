@@ -17,27 +17,40 @@ Gå til repoet på GitHub og klikk **Fork** øverst til høyre. Dette gir deg di
 
 ### Steg 2: Hent rmapi device token
 
-Du trenger å registrere GitHub Actions som en "enhet" mot reMarkable Cloud. Dette gjøres én gang lokalt.
+Du trenger å registrere GitHub Actions som en "enhet" mot reMarkable Cloud. Dette gjøres én gang lokalt fra din egen maskin.
 
-**Krav:** Python 3.9+ installert på din egen maskin.
+**Krav:** Python 3.9+ installert lokalt. Sjekk med `python3 --version`.
 
 ```bash
 git clone https://github.com/<ditt-brukernavn>/news-to-remarkable
 cd news-to-remarkable
-pip install requests python-dotenv
-python register.py
 ```
 
-Følg instruksjonene:
-1. Gå til [my.remarkable.com/connect/desktop](https://my.remarkable.com/connect/desktop)
-2. Kopier den 8-tegns engangskoden
-3. Lim den inn når skriptet spør
-
-Etter registrering inneholder `~/.config/rmapi/rmapi.conf` device token. Kopier innholdet:
+Opprett et virtuelt miljø og installer avhengighetene som trengs for registrering:
 
 ```bash
-cat ~/.config/rmapi/rmapi.conf
+python3 -m venv venv
+venv/bin/pip install requests python-dotenv
 ```
+
+Kjør registreringsskriptet:
+
+```bash
+venv/bin/python register.py
+```
+
+Følg instruksjonene i terminalen:
+1. Gå til [my.remarkable.com/device/remarkable](https://my.remarkable.com/device/remarkable)
+2. Klikk **Pair device** — du vil se en 8-tegns engangskode
+3. Skriv inn koden når skriptet spør
+
+Når registreringen er ferdig, hent token-verdien som ble lagret i `.env`:
+
+```bash
+grep REMARKABLE_DEVICE_TOKEN .env
+```
+
+Kopier verdien (JWT-strengen) — den skal brukes som `RMAPI_DEVICE_TOKEN` i neste steg.
 
 ### Steg 3: Legg inn secrets i GitHub
 
@@ -51,7 +64,7 @@ Legg inn disse:
 | `SCHIBSTED_PASSWORD` | Ditt Schibsted-passord |
 | `MORGENBLADET_EMAIL` | Din Morgenbladet-e-post (kan utelates) |
 | `MORGENBLADET_PASSWORD` | Ditt Morgenbladet-passord (kan utelates) |
-| `RMAPI_DEVICE_TOKEN` | Innholdet fra `~/.config/rmapi/rmapi.conf` |
+| `RMAPI_DEVICE_TOKEN` | JWT-strengen fra `grep REMARKABLE_DEVICE_TOKEN .env` |
 | `CALENDAR_ICS_URLS` | Kommaseparerte iCal-URLer (kan utelates) |
 
 ### Steg 4: Tilpass navn (valgfritt)
@@ -162,8 +175,8 @@ Verifiser:
 
 Dette steget gjøres kun én gang. Du trenger en engangskode fra reMarkable:
 
-1. Gå til [my.remarkable.com/connect/desktop](https://my.remarkable.com/connect/desktop)
-2. Du vil se en 8-tegns kode (f.eks. `abcd1234`)
+1. Gå til [my.remarkable.com/device/remarkable](https://my.remarkable.com/device/remarkable)
+2. Klikk **Pair device** — du vil se en 8-tegns kode (f.eks. `abcd1234`).
 3. Kjør registreringsskriptet og skriv inn koden:
 
 ```bash
