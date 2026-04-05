@@ -10,6 +10,10 @@ COOKIE_FILE = os.getenv("COOKIE_FILE", str(Path.home() / ".news-remarkable-cooki
 OUTPUT_DIR = os.getenv("OUTPUT_DIR", str(_PROJECT_ROOT / "output"))
 REMARKABLE_FOLDER = os.getenv("REMARKABLE_FOLDER", "/Nyheter")
 
+# Kjøremiljø: "gha" når kjørt via GitHub Actions, "pi" ved lokal/Pi-kjøring.
+# Brukes som suffiks i PDF-filnavnet, f.eks. Nyheter_2026-04-05_gha.pdf
+RUN_ENV = os.getenv("RUN_ENV", "pi")
+
 # Navn som vises i tittelen på forsiden: "<OWNER_NAME>s nyhetsmorgen"
 OWNER_NAME = os.getenv("OWNER_NAME", "Stian")
 

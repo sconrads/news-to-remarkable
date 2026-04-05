@@ -118,8 +118,9 @@ def render_pdf(categorized: dict, breaking_headlines: Optional[list] = None, cal
     Returnerer filsti til ferdig PDF.
     """
     os.makedirs(OUTPUT_DIR, exist_ok=True)
+    from config import RUN_ENV
     date_str = datetime.now().strftime("%Y-%m-%d")
-    pdf_path = os.path.join(OUTPUT_DIR, f"Nyheter_{date_str}.pdf")
+    pdf_path = os.path.join(OUTPUT_DIR, f"Nyheter_{date_str}_{RUN_ENV}.pdf")
 
     logger.info("Bygger HTML ...")
     html_content = build_html(categorized, breaking_headlines=breaking_headlines, calendar_events=calendar_events)
