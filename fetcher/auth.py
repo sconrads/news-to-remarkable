@@ -198,7 +198,7 @@ def login_morgenbladet(email: str, password: str) -> list:
         try:
             # --- Steg 1: Naviger til morgenbladet.no ---
             logger.info("Navigerer til Morgenbladet ...")
-            page.goto("https://www.morgenbladet.no", wait_until="networkidle", timeout=30000)
+            page.goto("https://www.morgenbladet.no", wait_until="domcontentloaded", timeout=60000)
 
             # --- Steg 2: Lukk GDPR-popup (Sourcepoint CMP i iframe) ---
             try:
