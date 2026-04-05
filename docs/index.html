@@ -111,6 +111,17 @@
       transition: opacity 0.15s;
     }
     .hero-cta:hover { opacity: 0.85; }
+    .hero-free-badge {
+      display: inline-block;
+      margin-left: 1rem;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: #ddd;
+      padding: 0.75rem 1.4rem;
+      border-radius: 3px;
+      font-size: 0.85rem;
+      letter-spacing: 0.02em;
+    }
 
     /* ── MOCKUP ── */
     .mockup-section {
@@ -256,13 +267,51 @@
     .req-card p { font-size: 0.85rem; color: var(--mid); line-height: 1.5; }
     .req-card ul { font-size: 0.85rem; color: var(--mid); line-height: 1.6; padding-left: 1rem; margin-top: 0.3rem; }
 
-    /* ── GUIDE ── */
+    /* ── TABS ── */
     .guide {
       padding: 5rem 2rem;
       max-width: 800px;
       margin: 0 auto;
     }
-    .steps { margin-top: 2.5rem; }
+    .tab-bar {
+      display: flex;
+      border-bottom: 2px solid var(--rule);
+      margin-bottom: 2.5rem;
+      gap: 0;
+    }
+    .tab-btn {
+      padding: 0.7rem 1.5rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--mid);
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      cursor: pointer;
+      letter-spacing: 0.01em;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .tab-btn:hover { color: var(--ink); }
+    .tab-btn.active { color: var(--black); border-bottom-color: var(--black); }
+    .tab-badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      background: var(--black);
+      color: var(--white);
+      padding: 0.15em 0.5em;
+      border-radius: 3px;
+      margin-left: 0.4rem;
+      vertical-align: middle;
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── STEPS ── */
+    .steps { margin-top: 0; }
     .step {
       display: flex;
       gap: 1.5rem;
@@ -318,6 +367,7 @@
       border-radius: 0 4px 4px 0;
       margin-top: 0.8rem;
     }
+    .note strong { color: var(--ink); }
 
     /* ── CONFIG ── */
     .config-section {
@@ -367,6 +417,7 @@
       .mockup-cols { flex-direction: column; }
       .mockup-breaking { border-left: none; border-top: 1px solid #ccc; padding-left: 0; padding-top: 0.8rem; }
       .step { flex-direction: column; gap: 0.8rem; }
+      .hero-free-badge { display: block; margin: 0.8rem auto 0; width: fit-content; }
     }
   </style>
 </head>
@@ -386,10 +437,11 @@
 
 <!-- HERO -->
 <section class="hero">
-  <p class="hero-eyebrow">Open source &middot; Python &middot; Raspberry Pi</p>
+  <p class="hero-eyebrow">Open source &middot; Python &middot; GitHub Actions</p>
   <h1>Your morning paper,<br>delivered to your reMarkable</h1>
-  <p class="hero-sub">Automatically fetch full-text articles from Norwegian newspapers, filter for quality, and wake up to a fresh, beautifully typeset PDF waiting on your tablet.</p>
+  <p class="hero-sub">Automatically fetch full-text articles from Norwegian newspapers, filter for quality, and wake up to a fresh, beautifully typeset PDF waiting on your tablet — no server required.</p>
   <a class="hero-cta" href="#guide">Get started &darr;</a>
+  <span class="hero-free-badge">Free on GitHub Actions</span>
 </section>
 
 <!-- MOCKUP -->
@@ -465,14 +517,14 @@
       <p>Uploaded automatically to the <code>/Nyheter</code> folder on your reMarkable Cloud. Files older than a configurable number of days are cleaned up.</p>
     </div>
     <div class="feature-card">
-      <div class="feature-icon">⏰</div>
-      <h3>Runs while you sleep</h3>
-      <p>A cron job on your Raspberry Pi (or any Linux machine) triggers at 06:00 every morning. No intervention needed.</p>
+      <div class="feature-icon">⚡</div>
+      <h3>Runs on GitHub Actions</h3>
+      <p>No server or Raspberry Pi needed. GitHub's free CI infrastructure runs the workflow every morning at 06:00 UTC. Well within the 2 000 free minutes/month on a free GitHub account.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">⚙️</div>
       <h3>Fully configurable</h3>
-      <p>Choose which newspapers are active, how many articles per category, minimum article length, your name, and retention period — all in one <code>config.py</code>.</p>
+      <p>Choose which newspapers are active, how many articles per category, minimum article length, your name, and retention period — all via GitHub Secrets or <code>config.py</code>.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">📅</div>
@@ -486,7 +538,7 @@
 <section class="requirements" id="requirements">
   <div class="requirements-inner">
     <h2 class="section-title">What you need</h2>
-    <p class="section-sub">Four things are required before you start.</p>
+    <p class="section-sub">Three things are required before you start.</p>
     <div class="req-grid">
       <div class="req-card">
         <div class="req-icon">📖</div>
@@ -504,14 +556,9 @@
         </ul>
       </div>
       <div class="req-card">
-        <div class="req-icon">🖥️</div>
-        <h3>A machine to run it on</h3>
-        <p>A Raspberry Pi (ARM64, Debian 11+) works great. Any Linux machine with Python 3.9+ and a stable internet connection will do.</p>
-      </div>
-      <div class="req-card">
-        <div class="req-icon">🐍</div>
-        <h3>Python 3.9+</h3>
-        <p>Standard Python installation. All dependencies are installed via <code>pip</code> from <code>requirements.txt</code>.</p>
+        <div class="req-icon">🐙</div>
+        <h3>GitHub account (free)</h3>
+        <p>A free GitHub account is all you need. GitHub Actions provides 2 000 free minutes per month — this workflow uses roughly 15 minutes per run, about 450 minutes per month.</p>
       </div>
     </div>
   </div>
@@ -522,132 +569,222 @@
   <h2 class="section-title">Setup guide</h2>
   <p class="section-sub">From zero to a fresh newspaper on your reMarkable every morning.</p>
 
-  <div class="steps">
+  <div class="tab-bar" role="tablist">
+    <button class="tab-btn active" role="tab" aria-selected="true" data-tab="actions">
+      GitHub Actions <span class="tab-badge">Recommended</span>
+    </button>
+    <button class="tab-btn" role="tab" aria-selected="false" data-tab="pi">
+      Raspberry Pi / Linux
+    </button>
+  </div>
 
-    <div class="step">
-      <div class="step-num">1</div>
-      <div class="step-body">
-        <h3>Clone the repository</h3>
-        <p>Clone to your machine (Raspberry Pi or Linux desktop):</p>
-        <pre><code>git clone https://github.com/sconrads/news-to-remarkable.git
-cd news-to-remarkable</code></pre>
+  <!-- ── TAB: GitHub Actions ── -->
+  <div class="tab-panel active" id="tab-actions">
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h3>Fork the repository on GitHub</h3>
+          <p>Go to <a href="https://github.com/sconrads/news-to-remarkable" target="_blank">github.com/sconrads/news-to-remarkable</a> and click <strong>Fork</strong>. Make sure to fork it as a <strong>private</strong> repository — your credentials will be stored as secrets in it.</p>
+        </div>
       </div>
-    </div>
 
-    <div class="step">
-      <div class="step-num">2</div>
-      <div class="step-body">
-        <h3>Create a virtual environment and install dependencies</h3>
-        <pre><code>python3 -m venv venv
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h3>Get a reMarkable device token</h3>
+          <p>Clone your fork locally and run the registration helper to get a one-time device token:</p>
+          <pre><code>git clone https://github.com/YOUR_USERNAME/news-to-remarkable.git
+cd news-to-remarkable
+python3 -m venv venv
+venv/bin/pip install -r requirements.txt
+venv/bin/python register.py</code></pre>
+          <p>When prompted, open <a href="https://my.remarkable.com/device/remarkable" target="_blank">my.remarkable.com/device/remarkable</a> and click <strong>Pair device</strong> to get a one-time code. Enter it at the prompt.</p>
+          <p>After registration, copy the token value:</p>
+          <pre><code>grep REMARKABLE_DEVICE_TOKEN .env</code></pre>
+          <div class="note">The device token is a JWT string that looks like <code>eyJhbGci...</code>. Keep it secret — it grants access to your reMarkable Cloud.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h3>Add GitHub Secrets to your fork</h3>
+          <p>In your fork on GitHub, go to <strong>Settings &rarr; Secrets and variables &rarr; Actions</strong> and add the following repository secrets:</p>
+          <table class="config-table" style="margin-top:0.8rem;">
+            <thead><tr><th>Secret name</th><th>Value</th></tr></thead>
+            <tbody>
+              <tr><td><code>SCHIBSTED_EMAIL</code></td><td>Your Schibsted login email</td></tr>
+              <tr><td><code>SCHIBSTED_PASSWORD</code></td><td>Your Schibsted password</td></tr>
+              <tr><td><code>MORGENBLADET_EMAIL</code></td><td>Your Morgenbladet email (if used)</td></tr>
+              <tr><td><code>MORGENBLADET_PASSWORD</code></td><td>Your Morgenbladet password (if used)</td></tr>
+              <tr><td><code>RMAPI_DEVICE_TOKEN</code></td><td>The token value from Step 2</td></tr>
+              <tr><td><code>OWNER_NAME</code></td><td>Your first name (e.g. <code>Stian</code>)</td></tr>
+              <tr><td><code>ENABLED_SOURCES</code></td><td>Comma-separated list, e.g. <code>aftenposten,morgenbladet</code></td></tr>
+            </tbody>
+          </table>
+          <div class="note"><strong>CALENDAR_ICS_URLS</strong> is optional — add it as a secret if you want today's calendar events on the front page.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h3>Enable the workflow</h3>
+          <p>The workflow is disabled by default in the repository to prevent it from running before you have configured your secrets. To enable it:</p>
+          <ol style="font-size:0.9rem;color:var(--mid);line-height:1.8;padding-left:1.2rem;margin-top:0.4rem;">
+            <li>Go to <strong>Actions</strong> in your fork.</li>
+            <li>Click the <strong>Daily news to reMarkable</strong> workflow.</li>
+            <li>Click <strong>Enable workflow</strong>.</li>
+          </ol>
+          <p>The workflow will now run automatically every day at 06:00 UTC.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <h3>Run manually to verify</h3>
+          <p>Trigger a test run immediately without waiting until tomorrow morning. In <strong>Actions &rarr; Daily news to reMarkable</strong>, click <strong>Run workflow &rarr; Run workflow</strong>.</p>
+          <p>Watch the logs in real time. The run takes about 10–15 minutes. When it succeeds, check your reMarkable — the PDF should appear in the <code>/Nyheter</code> folder within seconds.</p>
+          <div class="note"><strong>Cost:</strong> Each run uses roughly 15 minutes of Actions quota. GitHub Free accounts get 2 000 minutes per month — this workflow uses around 450 minutes per month, well within the free tier.</div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /tab-actions -->
+
+  <!-- ── TAB: Raspberry Pi / Linux ── -->
+  <div class="tab-panel" id="tab-pi">
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h3>Clone the repository</h3>
+          <p>Clone to your machine (Raspberry Pi or Linux desktop):</p>
+          <pre><code>git clone https://github.com/sconrads/news-to-remarkable.git
+cd news-to-remarkable</code></pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h3>Create a virtual environment and install dependencies</h3>
+          <pre><code>python3 -m venv venv
 venv/bin/pip install --upgrade pip
 venv/bin/pip install -r requirements.txt</code></pre>
-        <p>If WeasyPrint fails, install the required system libraries first:</p>
-        <pre><code>sudo apt install -y libpango-1.0-0 libpangoft2-1.0-0</code></pre>
+          <p>If WeasyPrint fails, install the required system libraries first:</p>
+          <pre><code>sudo apt install -y libpango-1.0-0 libpangoft2-1.0-0</code></pre>
+        </div>
       </div>
-    </div>
 
-    <div class="step">
-      <div class="step-num">3</div>
-      <div class="step-body">
-        <h3>Install the Playwright browser</h3>
-        <p>A bundled Chromium instance is used for authenticated article fetching. Install it inside the project folder to avoid conflicts:</p>
-        <pre><code>PLAYWRIGHT_BROWSERS_PATH=~/news-to-remarkable/browsers \
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h3>Install the Playwright browser</h3>
+          <p>A bundled Chromium instance is used for authenticated article fetching. Install it inside the project folder to avoid conflicts:</p>
+          <pre><code>PLAYWRIGHT_BROWSERS_PATH=~/news-to-remarkable/browsers \
   venv/bin/playwright install chromium</code></pre>
+        </div>
       </div>
-    </div>
 
-    <div class="step">
-      <div class="step-num">4</div>
-      <div class="step-body">
-        <h3>Configure your credentials</h3>
-        <p>Copy the example file and fill in your subscription credentials:</p>
-        <pre><code>cp .env.example .env
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h3>Configure your credentials</h3>
+          <p>Copy the example file and fill in your subscription credentials:</p>
+          <pre><code>cp .env.example .env
 nano .env</code></pre>
-        <pre><code>SCHIBSTED_EMAIL=your@email.no
+          <pre><code>SCHIBSTED_EMAIL=your@email.no
 SCHIBSTED_PASSWORD=yourpassword
 MORGENBLADET_EMAIL=your@email.no
 MORGENBLADET_PASSWORD=yourpassword</code></pre>
-        <div class="note">Your credentials are stored only in <code>.env</code> on your own machine — never committed to git or sent anywhere.</div>
+          <div class="note">Your credentials are stored only in <code>.env</code> on your own machine — never committed to git or sent anywhere.</div>
+        </div>
       </div>
-    </div>
 
-    <div class="step">
-      <div class="step-num">5</div>
-      <div class="step-body">
-        <h3>Add your Google Calendar (optional)</h3>
-        <p>To show today's events on the front page, add one or more private iCal URLs to <code>.env</code>. In Google Calendar, go to <em>Settings &rarr; [calendar name] &rarr; "Secret address in iCal format"</em> and copy the URL.</p>
-        <pre><code>CALENDAR_ICS_URLS=https://calendar.google.com/calendar/ical/abc123.../private-.../basic.ics</code></pre>
-        <p>Multiple calendars can be added as a comma-separated list. Leave the variable empty or unset to disable the calendar section entirely.</p>
-        <div class="note">The iCal URL is a private, unguessable link. It does not require authentication and is never shared with anyone.</div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <h3>Add your Google Calendar (optional)</h3>
+          <p>To show today's events on the front page, add one or more private iCal URLs to <code>.env</code>. In Google Calendar, go to <em>Settings &rarr; [calendar name] &rarr; "Secret address in iCal format"</em> and copy the URL.</p>
+          <pre><code>CALENDAR_ICS_URLS=https://calendar.google.com/calendar/ical/abc123.../private-.../basic.ics</code></pre>
+          <p>Multiple calendars can be added as a comma-separated list. Leave the variable empty or unset to disable the calendar section entirely.</p>
+          <div class="note">The iCal URL is a private, unguessable link. It does not require authentication and is never shared with anyone.</div>
+        </div>
       </div>
-    </div>
 
-    <div class="step">
-      <div class="step-num">6</div>
-      <div class="step-body">
-        <h3>Set your name in config.py</h3>
-        <p>Open <code>config.py</code> and change <code>OWNER_NAME</code> to your name. The front page will read <em>"[Your name]s nyhetsmorgen"</em>.</p>
-        <pre><code>OWNER_NAME = "Stian"</code></pre>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <h3>Set your name in config.py</h3>
+          <p>Open <code>config.py</code> and change <code>OWNER_NAME</code> to your name. The front page will read <em>"[Your name]s nyhetsmorgen"</em>.</p>
+          <pre><code>OWNER_NAME = "Stian"</code></pre>
+        </div>
       </div>
-    </div>
 
-    <div class="step">
-      <div class="step-num">7</div>
-      <div class="step-body">
-        <h3>Download rmapi and register with reMarkable Cloud</h3>
-        <p>Download the <code>rmapi</code> binary for your architecture from <a href="https://github.com/ddvk/rmapi/releases" target="_blank">github.com/ddvk/rmapi/releases</a> and place it in the project folder:</p>
-        <pre><code># ARM64 (Raspberry Pi):
+      <div class="step">
+        <div class="step-num">7</div>
+        <div class="step-body">
+          <h3>Download rmapi and register with reMarkable Cloud</h3>
+          <p>Download the <code>rmapi</code> binary for your architecture from <a href="https://github.com/ddvk/rmapi/releases" target="_blank">github.com/ddvk/rmapi/releases</a> and place it in the project folder:</p>
+          <pre><code># ARM64 (Raspberry Pi):
 wget https://github.com/ddvk/rmapi/releases/download/v0.0.32/rmapi-arm64.tar.gz
 tar -xzf rmapi-arm64.tar.gz && chmod +x rmapi && rm rmapi-arm64.tar.gz
 
 # x86-64 (regular Linux):
-wget https://github.com/ddvk/rmapi/releases/download/v0.0.32/rmapi-amd64.tar.gz
-tar -xzf rmapi-amd64.tar.gz && chmod +x rmapi && rm rmapi-amd64.tar.gz</code></pre>
-        <p>Then register once with reMarkable Cloud. Get a one-time code at <a href="https://my.remarkable.com/connect/desktop" target="_blank">my.remarkable.com/connect/desktop</a>, then run:</p>
-        <pre><code>venv/bin/python register.py</code></pre>
-        <p>Verify the connection:</p>
-        <pre><code>./rmapi ls /</code></pre>
+wget https://github.com/ddvk/rmapi/releases/download/v0.0.32/rmapi-linux-amd64.tar.gz
+tar -xzf rmapi-linux-amd64.tar.gz && chmod +x rmapi && rm rmapi-linux-amd64.tar.gz</code></pre>
+          <p>Then register once with reMarkable Cloud. Get a one-time code at <a href="https://my.remarkable.com/device/remarkable" target="_blank">my.remarkable.com/device/remarkable</a> (click <strong>Pair device</strong>), then run:</p>
+          <pre><code>venv/bin/python register.py</code></pre>
+          <p>Verify the connection:</p>
+          <pre><code>./rmapi ls /</code></pre>
+        </div>
       </div>
-    </div>
 
-    <div class="step">
-      <div class="step-num">8</div>
-      <div class="step-body">
-        <h3>Run manually to verify</h3>
-        <pre><code>PLAYWRIGHT_BROWSERS_PATH=~/news-to-remarkable/browsers \
+      <div class="step">
+        <div class="step-num">8</div>
+        <div class="step-body">
+          <h3>Run manually to verify</h3>
+          <pre><code>PLAYWRIGHT_BROWSERS_PATH=~/news-to-remarkable/browsers \
   venv/bin/python main.py</code></pre>
-        <p>If everything is configured correctly, you should see the pipeline run and end with:</p>
-        <pre><code>=== Ferdig! PDF sendt til reMarkable. ===</code></pre>
-        <p>Check your reMarkable — the PDF should appear in the <code>/Nyheter</code> folder within seconds.</p>
+          <p>If everything is configured correctly, you should see the pipeline run and end with:</p>
+          <pre><code>=== Ferdig! PDF sendt til reMarkable. ===</code></pre>
+          <p>Check your reMarkable — the PDF should appear in the <code>/Nyheter</code> folder within seconds.</p>
+        </div>
       </div>
-    </div>
 
-    <div class="step">
-      <div class="step-num">9</div>
-      <div class="step-body">
-        <h3>Schedule the daily cron job</h3>
-        <p>Open crontab and add the line below to run every morning at 06:00:</p>
-        <pre><code>crontab -e</code></pre>
-        <pre><code>0 6 * * * cd ~/news-to-remarkable && \
+      <div class="step">
+        <div class="step-num">9</div>
+        <div class="step-body">
+          <h3>Schedule the daily cron job</h3>
+          <p>Open crontab and add the line below to run every morning at 06:00:</p>
+          <pre><code>crontab -e</code></pre>
+          <pre><code>0 6 * * * cd ~/news-to-remarkable && \
   PLAYWRIGHT_BROWSERS_PATH=~/news-to-remarkable/browsers \
   ~/news-to-remarkable/venv/bin/python main.py \
   >> ~/news-to-remarkable/cron.log 2>&1</code></pre>
-        <p>Logs are written to <code>~/news-to-remarkable/cron.log</code>.</p>
+          <p>Logs are written to <code>~/news-to-remarkable/cron.log</code>.</p>
+        </div>
       </div>
-    </div>
 
-  </div>
+    </div>
+  </div><!-- /tab-pi -->
+
 </section>
 
 <!-- CONFIGURATION -->
 <section class="config-section" id="configuration">
   <div class="config-inner">
     <h2 class="section-title">Configuration reference</h2>
-    <p class="section-sub">All settings live in <code>config.py</code>. No code changes needed.</p>
+    <p class="section-sub">Settings can be provided as GitHub Secrets (recommended) or in <code>config.py</code> / <code>.env</code>.</p>
     <table class="config-table">
       <thead>
         <tr>
-          <th>Setting</th>
+          <th>Setting / Secret</th>
           <th>Default</th>
           <th>Description</th>
         </tr>
@@ -656,12 +793,27 @@ tar -xzf rmapi-amd64.tar.gz && chmod +x rmapi && rm rmapi-amd64.tar.gz</code></p
         <tr>
           <td><code>OWNER_NAME</code></td>
           <td><code>"Stian"</code></td>
-          <td>Your name. Appears in the front page title as "<em>Name</em>s nyhetsmorgen".</td>
+          <td>Your name. Appears in the front page title as "<em>Name</em>s nyhetsmorgen". Set as a GitHub Secret to override.</td>
         </tr>
         <tr>
           <td><code>ENABLED_SOURCES</code></td>
-          <td><code>["aftenposten", "morgenbladet"]</code></td>
-          <td>Which newspapers to fetch. Available: <code>aftenposten</code>, <code>morgenbladet</code>, <code>vg</code>, <code>e24</code>.</td>
+          <td><code>aftenposten,morgenbladet</code></td>
+          <td>Which newspapers to fetch. Available: <code>aftenposten</code>, <code>morgenbladet</code>, <code>vg</code>, <code>e24</code>. Comma-separated string as a GitHub Secret.</td>
+        </tr>
+        <tr>
+          <td><code>SCHIBSTED_EMAIL</code><br><code>SCHIBSTED_PASSWORD</code></td>
+          <td>&mdash;</td>
+          <td>Credentials for Aftenposten, VG and E24 (all share a Schibsted login). Required if any Schibsted source is enabled.</td>
+        </tr>
+        <tr>
+          <td><code>MORGENBLADET_EMAIL</code><br><code>MORGENBLADET_PASSWORD</code></td>
+          <td>&mdash;</td>
+          <td>Credentials for Morgenbladet. Required if <code>morgenbladet</code> is in <code>ENABLED_SOURCES</code>.</td>
+        </tr>
+        <tr>
+          <td><code>RMAPI_DEVICE_TOKEN</code></td>
+          <td>&mdash;</td>
+          <td>reMarkable Cloud device token (JWT). Obtained via <code>register.py</code>. GitHub Actions secret only.</td>
         </tr>
         <tr>
           <td><code>MAX_ARTICLES_PER_CATEGORY</code></td>
@@ -685,7 +837,7 @@ tar -xzf rmapi-amd64.tar.gz && chmod +x rmapi && rm rmapi-amd64.tar.gz</code></p
         </tr>
         <tr>
           <td><code>REMARKABLE_FOLDER</code></td>
-          <td><code>"/Nyheter"</code></td>
+          <td><code>/Nyheter</code></td>
           <td>The folder on reMarkable Cloud where PDFs are uploaded.</td>
         </tr>
         <tr>
@@ -708,6 +860,25 @@ tar -xzf rmapi-amd64.tar.gz && chmod +x rmapi && rm rmapi-amd64.tar.gz</code></p
     Built with Python, WeasyPrint &amp; Playwright
   </p>
 </footer>
+
+<script>
+  // Tab switching
+  document.querySelectorAll('.tab-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var tab = this.dataset.tab;
+      document.querySelectorAll('.tab-btn').forEach(function(b) {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
+      document.querySelectorAll('.tab-panel').forEach(function(p) {
+        p.classList.remove('active');
+      });
+      this.classList.add('active');
+      this.setAttribute('aria-selected', 'true');
+      document.getElementById('tab-' + tab).classList.add('active');
+    });
+  });
+</script>
 
 </body>
 </html>

@@ -81,9 +81,10 @@ def main():
     print("reMarkable Cloud - Enhetsregistrering")
     print("=" * 60)
     print()
-    print("1. Gå til: https://my.remarkable.com/connect/desktop")
-    print("2. Du vil se en engangskoble (8 tegn, f.eks. 'abcd1234').")
-    print("3. Skriv inn koden nedenfor.")
+    print("1. Gå til: https://my.remarkable.com/device/remarkable")
+    print("2. Klikk 'Pair device'.")
+    print("3. Du vil se en engangskoble (8 tegn, f.eks. 'abcd1234').")
+    print("4. Skriv inn koden nedenfor.")
     print()
 
     otp = input("Engangskoble: ").strip()
