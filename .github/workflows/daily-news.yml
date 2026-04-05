@@ -51,7 +51,7 @@ jobs:
           RMAPI_DEVICE_TOKEN: ${{ secrets.RMAPI_DEVICE_TOKEN }}
         run: |
           mkdir -p ~/.config/rmapi
-          printf '%s\n' "$RMAPI_DEVICE_TOKEN" > ~/.config/rmapi/rmapi.conf
+          printf 'devicetoken: %s\nusertoken: ""\n' "$RMAPI_DEVICE_TOKEN" > ~/.config/rmapi/rmapi.conf
 
       - name: Opprett output-mappe og cookie-stier
         run: mkdir -p output
