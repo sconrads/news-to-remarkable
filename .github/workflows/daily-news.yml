@@ -11,8 +11,10 @@ on:
         default: "false"
 # on:
 #   schedule:
-#     # Kjører kl. 06:00 UTC hver morgen (08:00 norsk sommertid, 07:00 vintertid)
-#     - cron: "0 6 * * *"
+#     # 06:00 norsk sommertid (CEST = UTC+2): 04:00 UTC
+#     - cron: "0 4 * * *"
+#     # 06:00 norsk vintertid (CET  = UTC+1): 05:00 UTC
+#     - cron: "0 5 * * *"
 #   workflow_dispatch:
 
 jobs:
