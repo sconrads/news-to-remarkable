@@ -1,6 +1,82 @@
 # Installasjonsveiledning
 
-Steg-for-steg for å sette opp news-to-remarkable på en Raspberry Pi (ARM64, Debian 11 Bullseye).
+Det finnes to måter å kjøre news-to-remarkable på:
+
+- **GitHub Actions** (anbefalt) — ingen egen maskin nødvendig, kjører automatisk hver morgen i skyen
+- **Raspberry Pi** — lokal kjøring på din egen maskin
+
+---
+
+## Oppsett med GitHub Actions (anbefalt)
+
+Ingen Raspberry Pi, ingen terminal. Alt du trenger er en GitHub-konto.
+
+### Steg 1: Fork repoet
+
+Gå til repoet på GitHub og klikk **Fork** øverst til høyre. Dette gir deg din egen kopi der du kan legge inn dine egne credentials.
+
+### Steg 2: Hent rmapi device token
+
+Du trenger å registrere GitHub Actions som en "enhet" mot reMarkable Cloud. Dette gjøres én gang lokalt.
+
+**Krav:** Python 3.9+ installert på din egen maskin.
+
+```bash
+git clone https://github.com/<ditt-brukernavn>/news-to-remarkable
+cd news-to-remarkable
+pip install requests python-dotenv
+python register.py
+```
+
+Følg instruksjonene:
+1. Gå til [my.remarkable.com/connect/desktop](https://my.remarkable.com/connect/desktop)
+2. Kopier den 8-tegns engangskoden
+3. Lim den inn når skriptet spør
+
+Etter registrering inneholder `~/.config/rmapi/rmapi.conf` device token. Kopier innholdet:
+
+```bash
+cat ~/.config/rmapi/rmapi.conf
+```
+
+### Steg 3: Legg inn secrets i GitHub
+
+Gå til ditt forkede repo → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**.
+
+Legg inn disse:
+
+| Secret | Verdi |
+|---|---|
+| `SCHIBSTED_EMAIL` | Din Schibsted-e-post (Aftenposten/VG) |
+| `SCHIBSTED_PASSWORD` | Ditt Schibsted-passord |
+| `MORGENBLADET_EMAIL` | Din Morgenbladet-e-post (kan utelates) |
+| `MORGENBLADET_PASSWORD` | Ditt Morgenbladet-passord (kan utelates) |
+| `RMAPI_DEVICE_TOKEN` | Innholdet fra `~/.config/rmapi/rmapi.conf` |
+| `CALENDAR_ICS_URLS` | Kommaseparerte iCal-URLer (kan utelates) |
+
+### Steg 4: Tilpass navn (valgfritt)
+
+For å bytte navn på forsiden fra "Stians nyhetsmorgen" til ditt eget navn, legg til en secret:
+
+| Secret | Verdi |
+|---|---|
+| `OWNER_NAME` | Ditt fornavn |
+
+Alternativt kan du redigere `config.py` direkte i din fork.
+
+### Steg 5: Kjør en test
+
+Gå til **Actions**-fanen i ditt repo → **Daily News to reMarkable** → **Run workflow**.
+
+Workflowen kjører og laster opp dagens PDF til `/Nyheter`-mappen på reMarkable. Du kan også laste ned PDFen direkte fra Actions-kjøringen under **Artifacts**.
+
+### Automatisk kjøring
+
+Workflowen kjører automatisk kl. 06:00 UTC hver morgen (08:00 norsk sommertid, 07:00 vintertid). Ingen handling nødvendig.
+
+---
+
+## Oppsett på Raspberry Pi (ARM64, Debian 11 Bullseye)
 
 ## 1. Forberedelser
 

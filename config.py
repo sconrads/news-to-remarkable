@@ -1,12 +1,17 @@
 # config.py - RSS-URLer og kategori-mappinger
 
+import os
+from pathlib import Path
+
+_PROJECT_ROOT = Path(__file__).parent
+
 CHROMIUM_EXECUTABLE = "/usr/bin/chromium-browser"
-COOKIE_FILE = "/home/sconrads/.news-remarkable-cookies.json"
-OUTPUT_DIR = "/home/sconrads/news-to-remarkable/output"
-REMARKABLE_FOLDER = "/Nyheter"
+COOKIE_FILE = os.getenv("COOKIE_FILE", str(Path.home() / ".news-remarkable-cookies.json"))
+OUTPUT_DIR = os.getenv("OUTPUT_DIR", str(_PROJECT_ROOT / "output"))
+REMARKABLE_FOLDER = os.getenv("REMARKABLE_FOLDER", "/Nyheter")
 
 # Navn som vises i tittelen på forsiden: "<OWNER_NAME>s nyhetsmorgen"
-OWNER_NAME = "Stian"
+OWNER_NAME = os.getenv("OWNER_NAME", "Stian")
 
 # Antall dager før en PDF på reMarkable slettes automatisk
 PDF_RETENTION_DAYS = 5

@@ -25,11 +25,11 @@ from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeo
 
 logger = logging.getLogger(__name__)
 
-COOKIE_FILE = os.getenv("COOKIE_FILE", "/home/sconrads/.news-remarkable-cookies.json")
+COOKIE_FILE = os.getenv("COOKIE_FILE", str(Path.home() / ".news-remarkable-cookies.json"))
 MORGENBLADET_COOKIE_FILE = os.getenv(
-    "MORGENBLADET_COOKIE_FILE", "/home/sconrads/.news-remarkable-cookies-morgenbladet.json"
+    "MORGENBLADET_COOKIE_FILE", str(Path.home() / ".news-remarkable-cookies-morgenbladet.json")
 )
-BROWSERS_PATH = os.getenv("PLAYWRIGHT_BROWSERS_PATH", "/home/sconrads/news-to-remarkable/browsers")
+BROWSERS_PATH = os.getenv("PLAYWRIGHT_BROWSERS_PATH", str(Path(__file__).parent.parent / "browsers"))
 
 # Initiell innlogging: bruker VGs klient for å starte SPID-flyten
 _LOGIN_URL = (

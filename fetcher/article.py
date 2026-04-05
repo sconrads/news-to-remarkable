@@ -2,11 +2,12 @@
 
 import logging
 import os
+from pathlib import Path
 from typing import Optional
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
-BROWSERS_PATH = os.getenv("PLAYWRIGHT_BROWSERS_PATH", "/home/sconrads/news-to-remarkable/browsers")
+BROWSERS_PATH = os.getenv("PLAYWRIGHT_BROWSERS_PATH", str(Path(__file__).parent.parent / "browsers"))
 
 logger = logging.getLogger(__name__)
 

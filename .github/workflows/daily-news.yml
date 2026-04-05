@@ -1,0 +1,78 @@
+name: Daily News to reMarkable
+
+on:
+  schedule:
+    # Kjører kl. 06:00 UTC hver morgen (08:00 norsk sommertid, 07:00 vintertid)
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+    # Tillater manuell kjøring fra GitHub Actions-fanen
+
+jobs:
+  generate-and-upload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Sjekk ut kode
+        uses: actions/checkout@v4
+
+      - name: Sett opp Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Installer systemavhengigheter (WeasyPrint)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            libpango-1.0-0 \
+            libpangoft2-1.0-0 \
+            libharfbuzz0b \
+            libfontconfig1 \
+            libcairo2 \
+            fonts-liberation \
+            fonts-dejavu-core
+
+      - name: Installer Python-avhengigheter
+        run: pip install -r requirements.txt
+
+      - name: Installer Playwright Chromium
+        run: playwright install chromium --with-deps
+
+      - name: Last ned rmapi
+        run: |
+          curl -sSL https://github.com/ddvk/rmapi/releases/download/v0.0.32/rmapi-amd64.tar.gz \
+            | tar -xz -C .
+          chmod +x rmapi
+
+      - name: Konfigurer rmapi med device token
+        env:
+          RMAPI_DEVICE_TOKEN: ${{ secrets.RMAPI_DEVICE_TOKEN }}
+        run: |
+          mkdir -p ~/.config/rmapi
+          printf '%s\n' "$RMAPI_DEVICE_TOKEN" > ~/.config/rmapi/rmapi.conf
+
+      - name: Opprett output-mappe og cookie-stier
+        run: mkdir -p output
+
+      - name: Kjør nyhetsinnhenting og opplasting
+        env:
+          SCHIBSTED_EMAIL: ${{ secrets.SCHIBSTED_EMAIL }}
+          SCHIBSTED_PASSWORD: ${{ secrets.SCHIBSTED_PASSWORD }}
+          MORGENBLADET_EMAIL: ${{ secrets.MORGENBLADET_EMAIL }}
+          MORGENBLADET_PASSWORD: ${{ secrets.MORGENBLADET_PASSWORD }}
+          CALENDAR_ICS_URLS: ${{ secrets.CALENDAR_ICS_URLS }}
+          COOKIE_FILE: /tmp/schibsted-cookies.json
+          MORGENBLADET_COOKIE_FILE: /tmp/morgenbladet-cookies.json
+          PLAYWRIGHT_BROWSERS_PATH: /home/runner/.cache/ms-playwright
+        run: python main.py
+
+      - name: Last opp PDF som artefakt (tilgjengelig i 7 dager)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nyheter-${{ github.run_id }}
+          path: output/*.pdf
+          retention-days: 7
+          if-no-files-found: warn
