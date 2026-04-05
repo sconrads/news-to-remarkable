@@ -1,6 +1,6 @@
 # news-to-remarkable
 
-Automatisk nyhetsapp som henter artikler fra Aftenposten og Morgenbladet, genererer en PDF og sender den til et reMarkable-nettbrett. Kjøres som en nattlig cron-jobb (kl. 06:00) på en Raspberry Pi.
+Henter artikler fra Aftenposten og Morgenbladet, genererer en PDF og sender den til et reMarkable-nettbrett. Kjøres automatisk kl. 06:00 hver morgen via GitHub Actions — ingen Raspberry Pi eller server nødvendig.
 
 ## Hva den gjør
 
@@ -11,51 +11,34 @@ Automatisk nyhetsapp som henter artikler fra Aftenposten og Morgenbladet, genere
 5. Genererer en stilren PDF tilpasset reMarkable (A4, ingen bilder, stor serif-font)
 6. Laster opp PDFen til `/Nyheter`-mappen på reMarkable Cloud
 
-## Forutsetninger
-
-- Raspberry Pi (ARM64, Debian 11 Bullseye) — eller annen Linux-maskin
-- Python 3.9+
-- Schibsted-konto med abonnement (Aftenposten, VG og/eller E24)
-- Morgenbladet-konto med abonnement
-- reMarkable-nettbrett koblet til reMarkable Cloud
-
 ## Kom i gang
 
 Se [SETUP.md](SETUP.md) for fullstendig installasjonsveiledning.
 
-## Kjøre manuelt
+**Kortversjon (GitHub Actions):**
+1. Fork dette repoet (privat)
+2. Hent rmapi device token: `python register.py`
+3. Legg inn secrets i repoet ditt (Settings → Secrets → Actions)
+4. Kjør workflowen manuelt fra Actions-fanen for å teste
 
-```bash
-cd ~/news-to-remarkable
-PLAYWRIGHT_BROWSERS_PATH=~/news-to-remarkable/browsers venv/bin/python main.py
-```
+## Forutsetninger
 
-## Oppdatere Pi med ny kode
+- GitHub-konto (for GitHub Actions-oppsett)
+- Schibsted-konto med abonnement (Aftenposten, VG og/eller E24)
+- Morgenbladet-konto med abonnement
+- reMarkable-nettbrett koblet til reMarkable Cloud
 
-Koden lever i git på utviklingsmaskinen og synkroniseres til Pi med rsync (Pi har ikke git installert).
+## Secrets som må settes i GitHub
 
-**Fra utviklingsmaskinen:**
-
-```bash
-rsync -av \
-  --exclude='.git' \
-  --exclude='venv' \
-  --exclude='browsers' \
-  --exclude='rmapi' \
-  --exclude='output' \
-  --exclude='__pycache__' \
-  --exclude='.env' \
-  --exclude='*.pyc' \
-  /path/to/news-to-remarkable/ \
-  pi@<pi-ip>:~/news-to-remarkable/
-```
-
-Etter rsync kan du kjøre appen manuelt på Pi for å verifisere:
-
-```bash
-ssh pi@<pi-ip> \
-  "cd ~/news-to-remarkable && PLAYWRIGHT_BROWSERS_PATH=~/news-to-remarkable/browsers venv/bin/python main.py 2>&1"
-```
+| Secret | Beskrivelse |
+|---|---|
+| `SCHIBSTED_EMAIL` | Din Schibsted-e-post (Aftenposten/VG) |
+| `SCHIBSTED_PASSWORD` | Ditt Schibsted-passord |
+| `RMAPI_DEVICE_TOKEN` | Device token fra `register.py` |
+| `MORGENBLADET_EMAIL` | Din Morgenbladet-e-post (valgfritt) |
+| `MORGENBLADET_PASSWORD` | Ditt Morgenbladet-passord (valgfritt) |
+| `CALENDAR_ICS_URLS` | Kommaseparerte iCal-URLer (valgfritt) |
+| `OWNER_NAME` | Ditt fornavn på forsiden (valgfritt) |
 
 ## Velge aviser
 
@@ -82,6 +65,9 @@ news-to-remarkable/
 ├── register.py          # Engangsskript: registrerer mot reMarkable Cloud
 ├── requirements.txt     # Python-avhengigheter
 ├── .env.example         # Mal for miljøvariabler
+├── .github/
+│   └── workflows/
+│       └── daily-news.yml  # GitHub Actions workflow
 ├── templates/
 │   └── newspaper.html   # HTML-mal for PDF-generering
 └── fetcher/
@@ -90,18 +76,14 @@ news-to-remarkable/
     └── rss.py           # Henter og filtrerer RSS-feeds
 ```
 
-## Konfigurasjon
+## Kjøre lokalt / på Raspberry Pi
 
-Kopier `.env.example` til `.env` og fyll inn:
+Se [SETUP.md](SETUP.md) for oppsett på lokal maskin eller Raspberry Pi.
 
+```bash
+cd ~/news-to-remarkable
+PLAYWRIGHT_BROWSERS_PATH=~/news-to-remarkable/browsers venv/bin/python main.py
 ```
-SCHIBSTED_EMAIL=din@email.no
-SCHIBSTED_PASSWORD=dittpassord
-MORGENBLADET_EMAIL=din@email.no
-MORGENBLADET_PASSWORD=dittpassord
-```
-
-Innstillinger som aktiverte aviser, kategorier og antall artikler justeres i `config.py`.
 
 ## Avhengigheter
 
@@ -117,14 +99,16 @@ Innstillinger som aktiverte aviser, kategorier og antall artikler justeres i `co
 
 ## Tekniske detaljer
 
+### GitHub Actions
+
+Workflowen (`.github/workflows/daily-news.yml`) kjøres automatisk kl. 06:00 UTC daglig og kan også trigges manuelt. Den installerer alle avhengigheter, laster ned `rmapi`-binæren og skriver device token fra secrets til `~/.config/rmapi/rmapi.conf` ved hver kjøring. PDFen lastes også opp som artefakt i Actions og kan lastes ned direkte derfra.
+
 ### Schibsted SPID-innlogging
 
 To-stegs flyt via `payment.schibsted.no`:
 
 1. POST e-post + passord til `/authn/login`
 2. `oauth/authorize` per avis (VG, Aftenposten, E24) for site-spesifikke sessions
-
-Cookies caches i `~/.news-remarkable-cookies.json` og gjenbrukes til neste dag.
 
 ### Morgenbladet-innlogging
 
@@ -135,8 +119,6 @@ Flyt via `auth.morgenbladet.no`:
 3. Klikk "Logg inn uten Vipps" → velg "E-post"-tab
 4. Fyll inn e-post → Neste → fyll inn passord → Enter
 
-Cookies caches i `~/.news-remarkable-cookies-morgenbladet.json`.
-
 ### reMarkable-opplasting
 
-Bruker [`ddvk/rmapi`](https://github.com/ddvk/rmapi) v0.0.32 ARM64-binær. Binæren plasseres i prosjektmappen og er ikke inkludert i dette repoet.
+Bruker [`ddvk/rmapi`](https://github.com/ddvk/rmapi) v0.0.32. Enhet registreres mot reMarkable Cloud via [my.remarkable.com/device/remarkable](https://my.remarkable.com/device/remarkable) (klikk **Pair device**). Binæren er ikke inkludert i dette repoet — lastes ned automatisk av GitHub Actions.
